@@ -45,13 +45,13 @@ jobs:
       - docker/build:
           image: $DOCKER_LOGIN/$CIRCLE_PROJECT_REPONAME
           tag: 0.1.<< pipeline.number >>
-      - snyk/scan:
-          docker-image-name: $DOCKER_LOGIN/$CIRCLE_PROJECT_REPONAME:0.1.<< pipeline.number >>
-          fail-on-issues: false
-          monitor-on-build: false
-          severity-threshold: high
-          target-file: Dockerfile
-          token-variable: SNYK_TOKEN
+      # - snyk/scan:
+      #     docker-image-name: $DOCKER_LOGIN/$CIRCLE_PROJECT_REPONAME:0.1.<< pipeline.number >>
+      #     fail-on-issues: false
+      #     monitor-on-build: false
+      #     severity-threshold: high
+      #     target-file: Dockerfile
+      #     token-variable: SNYK_TOKEN
       - docker/push:
           image: $DOCKER_LOGIN/$CIRCLE_PROJECT_REPONAME
           tag: 0.1.<< pipeline.number >>
@@ -124,7 +124,7 @@ workflows:
   build:
     jobs:
       - run_tests
-      - scan_app
+      # - scan_app
       - build_docker_image
       - stackhawk/hawkscan-local:
           requires:
@@ -136,8 +136,7 @@ workflows:
             - run:
                 name: Run Stackhawk Scan
                 command: |
-                  # docker run --rm -p5000:5000 $DOCKER_LOGIN/$CIRCLE_PROJECT_REPONAME:0.1.<< pipeline.number >>
-                  docker run --rm -v $(pwd):/hawk:rw -e HAWK_API_KEY -t stackhawk/hawkscan:latest
+                  docker run -d --rm -p5000:5000 $DOCKER_LOGIN/$CIRCLE_PROJECT_REPONAME:0.1.<< pipeline.number >>
       # - terraform_deploy_aws_ecs:
       #     requires:
       #       - build_docker_image          
