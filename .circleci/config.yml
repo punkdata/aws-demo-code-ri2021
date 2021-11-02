@@ -135,7 +135,9 @@ workflows:
             - checkout
             - run:
                 name: Run Stackhawk Scan
-                command: docker run --rm -p5000:5000 $DOCKER_LOGIN/$CIRCLE_PROJECT_REPONAME:0.1.<< pipeline.number >>
+                command: |
+                  # docker run --rm -p5000:5000 $DOCKER_LOGIN/$CIRCLE_PROJECT_REPONAME:0.1.<< pipeline.number >>
+                  docker run --rm -v $(pwd):/hawk:rw -e HAWK_API_KEY -t stackhawk/hawkscan:latest
       # - terraform_deploy_aws_ecs:
       #     requires:
       #       - build_docker_image          
