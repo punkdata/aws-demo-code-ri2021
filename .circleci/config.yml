@@ -35,7 +35,7 @@ jobs:
       - snyk/scan:
           fail-on-issues: false
           monitor-on-build: false
-  build_docker_image:
+  scan_build_docker_image:
     machine:
       image: ubuntu-2004:202101-01
     resource_class: medium
@@ -125,10 +125,10 @@ workflows:
     jobs:
       - run_tests
       - scan_app
-      - build_docker_image
+      - scan_build_docker_image
       - stackhawk/hawkscan-local:
           requires:
-            - build_docker_image
+            - scan_build_docker_image
           docker-network: host
           app-id: bdf5d6af-4c4f-43d9-ba1b-ee305873cb6c
           steps:
@@ -139,7 +139,6 @@ workflows:
                   docker run -d --rm -p5000:5000 $DOCKER_LOGIN/$CIRCLE_PROJECT_REPONAME:0.1.<< pipeline.number >>
       - terraform_deploy_aws_ecs:
           requires:
-            - build_docker_image
             - stackhawk/hawkscan-local    
       - smoketest_deployment:
           requires:
