@@ -61,10 +61,10 @@ resource "aws_route_table_association" "route_table_association_subB" {
   route_table_id = aws_route_table.public.id
 }
 
-resource "aws_security_group" "app-arm-22" {
+resource "aws_security_group" "aws-devsecops-demo-22" {
   description = "Port 22 Admin"
   vpc_id      = aws_vpc.vpc.id
-  name_prefix = "app-arm-22-SSH-"
+  name_prefix = "aws-devsecops-demo-22-SSH-"
 
   ingress {
     protocol    = "tcp"
@@ -81,15 +81,15 @@ resource "aws_security_group" "app-arm-22" {
     cidr_blocks = ["0.0.0.0/0"]
   }
   tags = {
-    Name  = "app-arm-22-SSH",
+    Name  = "aws-devsecops-demo-22-SSH",
     team  = "DevRel Marketing",
     owner = "Angel Rivera"
   }
 }
 
-resource "aws_security_group" "app-arm-ELB" {
+resource "aws_security_group" "aws-devsecops-demo-ELB" {
   description = "Port 443 Elastic Load Balancer"
-  name_prefix = "app-arm-443-ELB-"
+  name_prefix = "aws-devsecops-demo-443-ELB-"
   vpc_id      = aws_vpc.vpc.id
 
   ingress {
@@ -109,15 +109,15 @@ resource "aws_security_group" "app-arm-ELB" {
     ]
   }
   tags = {
-    Name  = "app-arm-443-ELB",
+    Name  = "aws-devsecops-demo-443-ELB",
     team  = "DevRel Marketing",
     owner = "Angel Rivera"
   }
 }
 
-resource "aws_security_group" "app-arm-ELB-HTTP80" {
+resource "aws_security_group" "aws-devsecops-demo-ELB-HTTP80" {
   description = "Port 80 Elastic Load Balancer"
-  name_prefix = "app-arm-ELB-80-"
+  name_prefix = "aws-devsecops-demo-ELB-80-"
   vpc_id      = aws_vpc.vpc.id
 
   ingress {
@@ -137,21 +137,21 @@ resource "aws_security_group" "app-arm-ELB-HTTP80" {
     ]
   }
   tags = {
-    Name = "app-arm-ELB-80"
+    Name = "aws-devsecops-demo-ELB-80"
   }
 }
 
-resource "aws_security_group" "app-arm-80" {
+resource "aws_security_group" "aws-devsecops-demo-80" {
   description = "Port 80 internal dev group "
   vpc_id      = aws_vpc.vpc.id
-  name_prefix = "app-arm-80-internal-"
+  name_prefix = "aws-devsecops-demo-80-internal-"
 
   ingress {
     protocol  = "tcp"
     from_port = 80
     to_port   = 80
     security_groups = [
-      aws_security_group.app-arm-ELB-HTTP80.id,
+      aws_security_group.aws-devsecops-demo-ELB-HTTP80.id,
     ]
   }
 
@@ -165,6 +165,6 @@ resource "aws_security_group" "app-arm-80" {
     ]
   }
   tags = {
-    Name = "app-arm-80-internal"
+    Name = "aws-devsecops-demo-80-internal"
   }
 }

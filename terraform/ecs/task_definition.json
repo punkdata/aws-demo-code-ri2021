@@ -9,7 +9,7 @@
       }
     ],
     "essential": true,
-    "name": "app-arm",
+    "name": "aws-devsecops-demo",
     "image": "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}",
     "environment": [],
     "command": [],
@@ -17,9 +17,9 @@
     "logConfiguration": {
       "logDriver": "awslogs",
       "options": {
-        "awslogs-group": "awslogs-app-arm",
+        "awslogs-group": "awslogs-aws-devsecops-demo",
         "awslogs-region": "us-east-1",
-        "awslogs-stream-prefix": "devrel-app-arm"
+        "awslogs-stream-prefix": "devrel-aws-devsecops-demo"
       }
     }
   }

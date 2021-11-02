@@ -48,7 +48,7 @@ def generate_task_definition(image_name, tag):
             "protocol": "tcp"
         }],
         "essential": True,
-        "name": "app-arm",
+        "name": "aws-devsecops-demo",
         "image": docker_image_name+":"+docker_image_tag,
         "environment": [],
         "command": [],
@@ -56,9 +56,9 @@ def generate_task_definition(image_name, tag):
         "logConfiguration": {
             "logDriver": "awslogs",
             "options": {
-                "awslogs-group": "awslogs-app-arm",
+                "awslogs-group": "awslogs-aws-devsecops-demo",
                 "awslogs-region": "us-east-1",
-                "awslogs-stream-prefix": "devrel-app-arm"
+                "awslogs-stream-prefix": "devrel-aws-devsecops-demo"
             }
         }
         }])
@@ -95,7 +95,7 @@ aws_rt_assoc_b = aws.ec2.RouteTableAssociation("rta_subB", route_table_id=aws_ro
     subnet_id=aws_subnet_b.id
 )
 
-aws_sg_22 = aws.ec2.SecurityGroup("app-arm-22", name_prefix="app-arm-22-SSH-", vpc_id=vpc_main,
+aws_sg_22 = aws.ec2.SecurityGroup("aws-devsecops-demo-22", name_prefix="aws-devsecops-demo-22-SSH-", vpc_id=vpc_main,
     description="Port 22 SSH", tags=aws_tags,
     egress=[aws.ec2.SecurityGroupEgressArgs(
         from_port=0,
@@ -112,7 +112,7 @@ aws_sg_22 = aws.ec2.SecurityGroup("app-arm-22", name_prefix="app-arm-22-SSH-", v
         ipv6_cidr_blocks=["::/0"],
     )]
 )
-aws_sg_443 = aws.ec2.SecurityGroup("app-arm-443", name_prefix="app-arm-443-", vpc_id=vpc_main,
+aws_sg_443 = aws.ec2.SecurityGroup("aws-devsecops-demo-443", name_prefix="aws-devsecops-demo-443-", vpc_id=vpc_main,
     description="Port 443 ELB", tags=aws_tags,
     egress=[aws.ec2.SecurityGroupEgressArgs(
         from_port=0,
@@ -129,7 +129,7 @@ aws_sg_443 = aws.ec2.SecurityGroup("app-arm-443", name_prefix="app-arm-443-", vp
         ipv6_cidr_blocks=["::/0"],
     )]
 )
-aws_sg_80 = aws.ec2.SecurityGroup("app-arm-80", name_prefix="app-arm-80-", vpc_id=vpc_main,
+aws_sg_80 = aws.ec2.SecurityGroup("aws-devsecops-demo-80", name_prefix="aws-devsecops-demo-80-", vpc_id=vpc_main,
     description="Port 80 ELB", tags=aws_tags,
     egress=[aws.ec2.SecurityGroupEgressArgs(
         from_port=0,
@@ -169,13 +169,13 @@ iam_role_attachment = aws.iam.RolePolicyAttachment("ecs_agent",
 iam_inst_profile = aws.iam.InstanceProfile("iam_inst_profile", role=ecs_iam_role.name)
 
 # Provsion AWS Compute Resources
-aws_cloud_watch_group = aws.cloudwatch.LogGroup("awslogs-app-arm",
-    name="awslogs-app-arm",
+aws_cloud_watch_group = aws.cloudwatch.LogGroup("awslogs-aws-devsecops-demo",
+    name="awslogs-aws-devsecops-demo",
     tags=aws_tags
 )
 
 alb_target_group = aws.alb.TargetGroup("alb_tg",
-    name="app-arm",
+    name="aws-devsecops-demo",
     port=80,
     protocol="HTTP",
     vpc_id=vpc_main.id,
@@ -190,7 +190,7 @@ alb_target_group = aws.alb.TargetGroup("alb_tg",
 )
 
 aws_alb = aws.lb.LoadBalancer("alb_main",
-    name="app-arm",
+    name="aws-devsecops-demo",
     security_groups=[
         aws_sg_80.id,
     ],
@@ -212,7 +212,7 @@ aws_alb_listener = aws.lb.Listener("alb_listener",
 )
 
 launch_config = aws.ec2.LaunchConfiguration("asg_launch_config", 
-    name_prefix="app-arm-asg-lc-",
+    name_prefix="aws-devsecops-demo-asg-lc-",
     key_name=key_pair,
     image_id=ami,
     instance_type=ec2_type,
@@ -232,7 +232,7 @@ launch_config = aws.ec2.LaunchConfiguration("asg_launch_config",
 )
 
 aws_asg = aws.autoscaling.Group("aws-asg",
-    name="app-arm",
+    name="aws-devsecops-demo",
     min_size=asg_min_size,
     max_size=asg_max_size,
     desired_capacity=asg_desired_count,
@@ -244,7 +244,7 @@ aws_asg = aws.autoscaling.Group("aws-asg",
     ],
     tags=[{
         "key":"Name",
-        "value":"app-arm",
+        "value":"aws-devsecops-demo",
         "propagate_at_launch":True
     }]
 )
@@ -258,7 +258,7 @@ ecs_task_def = aws.ecs.TaskDefinition(ecs_cluster_name,
 
 ecs_cluster = aws.ecs.Cluster(ecs_cluster_name,name=ecs_cluster_name)
 
-ecs_service = aws.ecs.Service("app-arm-service",
+ecs_service = aws.ecs.Service("aws-devsecops-demo-service",
     name=ecs_cluster_name,
     cluster=ecs_cluster.id,
     task_definition=ecs_task_def.arn,
@@ -267,7 +267,7 @@ ecs_service = aws.ecs.Service("app-arm-service",
     deployment_maximum_percent=100,
     load_balancers=[aws.ecs.ServiceLoadBalancerArgs(
         target_group_arn=alb_target_group.id,
-        container_name="app-arm",
+        container_name="aws-devsecops-demo",
         container_port=5000
     )]
 )

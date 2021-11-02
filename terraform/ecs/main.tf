@@ -4,7 +4,7 @@ terraform {
     organization = "datapunks"
 
     workspaces {
-      name = "arm-aws-ecs"
+      name = "aws-devsecops-demo"
     }
   }
 }
@@ -17,7 +17,7 @@ data "template_file" "user_data" {
   template = file("${path.module}/user_data.sh")
 
   vars = {
-    CLUSTER_NAME = aws_ecs_cluster.app-arm-v8.name
+    CLUSTER_NAME = aws_ecs_cluster.aws-devsecops-demo-v8.name
   }
 }
 
@@ -61,11 +61,11 @@ resource "aws_iam_instance_profile" "ecs_agent" {
 
 # AWS Auto Scale Launch Configuration
 resource "aws_launch_configuration" "app" {
-  name_prefix = "app-arm-"
+  name_prefix = "aws-devsecops-demo-"
   security_groups = [
-    aws_security_group.app-arm-22.id,
-    aws_security_group.app-arm-80.id,
-    aws_security_group.app-arm-ELB-HTTP80.id
+    aws_security_group.aws-devsecops-demo-22.id,
+    aws_security_group.aws-devsecops-demo-80.id,
+    aws_security_group.aws-devsecops-demo-ELB-HTTP80.id
   ]
   key_name                    = var.key_pair
   image_id                    = var.ami
@@ -85,7 +85,7 @@ resource "aws_launch_configuration" "app" {
 }
 
 resource "aws_autoscaling_group" "app" {
-  name = "app-arm-v8"
+  name = "aws-devsecops-demo-v8"
   vpc_zone_identifier = [
     aws_subnet.pub_subnet_a.id,
     aws_subnet.pub_subnet_b.id
@@ -97,14 +97,14 @@ resource "aws_autoscaling_group" "app" {
   target_group_arns    = [aws_alb_target_group.alb.arn]
   tag {
     key                 = "Name"
-    value               = "app-arm"
+    value               = "aws-devsecops-demo"
     propagate_at_launch = true
   }
 }
 
 # ASG Scaling Policies
 resource "aws_autoscaling_policy" "ec2-scale-up" {
-  name                   = "app-arm-v8-scale-up"
+  name                   = "aws-devsecops-demo-v8-scale-up"
   scaling_adjustment     = 1
   adjustment_type        = "ChangeInCapacity"
   cooldown               = 300
@@ -112,7 +112,7 @@ resource "aws_autoscaling_policy" "ec2-scale-up" {
 }
 
 resource "aws_autoscaling_policy" "ec2-scale-down" {
-  name                   = "app-arm-v8-scale-down"
+  name                   = "aws-devsecops-demo-v8-scale-down"
   scaling_adjustment     = -1
   adjustment_type        = "ChangeInCapacity"
   cooldown               = 300
@@ -121,7 +121,7 @@ resource "aws_autoscaling_policy" "ec2-scale-down" {
 
 # CloudWatch Alarms
 resource "aws_cloudwatch_metric_alarm" "alarm-high" {
-  alarm_name          = "app-arm-v8-alarm-high"
+  alarm_name          = "aws-devsecops-demo-v8-alarm-high"
   alarm_description   = "EC2 Scale Up Alarm monitors NetworkOut values"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = "1"
@@ -143,7 +143,7 @@ resource "aws_cloudwatch_metric_alarm" "alarm-high" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "alarm-low" {
-  alarm_name          = "app-arm-v8-alarm-low"
+  alarm_name          = "aws-devsecops-demo-v8-alarm-low"
   alarm_description   = "EC2 Scale Down Alarm monitors NetworkOut values"
   comparison_operator = "LessThanThreshold"
   evaluation_periods  = "1"
@@ -165,9 +165,9 @@ resource "aws_cloudwatch_metric_alarm" "alarm-low" {
 }
 
 # AWS SNS Topic
-resource "aws_sns_topic" "app-arm-v8-sns" {
-  name         = "app-arm-v8-notifications"
-  display_name = "app-arm-v8 scaling notifications"
+resource "aws_sns_topic" "aws-devsecops-demo-v8-sns" {
+  name         = "aws-devsecops-demo-v8-notifications"
+  display_name = "aws-devsecops-demo-v8 scaling notifications"
 }
 
 # AWS ASB Notfication
@@ -181,15 +181,15 @@ resource "aws_autoscaling_notification" "asg_notifications" {
     "autoscaling:EC2_INSTANCE_LAUNCH_ERROR"
   ]
 
-  topic_arn = aws_sns_topic.app-arm-v8-sns.arn
+  topic_arn = aws_sns_topic.aws-devsecops-demo-v8-sns.arn
   depends_on = [
     aws_autoscaling_group.app
   ]
 }
 
 # AWS Cloudwatch Log Groups
-resource "aws_cloudwatch_log_group" "awslogs-app-arm" {
-  name = "awslogs-app-arm"
+resource "aws_cloudwatch_log_group" "awslogs-aws-devsecops-demo" {
+  name = "awslogs-aws-devsecops-demo"
   tags = {
     team  = "devrel marketing"
     owner = "Angel Rivera"
@@ -198,7 +198,7 @@ resource "aws_cloudwatch_log_group" "awslogs-app-arm" {
 
 # AWS Application Load Balancer Target Group
 resource "aws_alb_target_group" "alb" {
-  name     = "app-arm-v8"
+  name     = "aws-devsecops-demo-v8"
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.vpc.id
@@ -215,13 +215,13 @@ resource "aws_alb_target_group" "alb" {
 
 #AWS Application Load Balancer
 resource "aws_alb" "main" {
-  name = "app-arm-v8"
+  name = "aws-devsecops-demo-v8"
   subnets = [
     aws_subnet.pub_subnet_a.id,
     aws_subnet.pub_subnet_b.id
   ]
   security_groups = [
-    aws_security_group.app-arm-ELB-HTTP80.id,
+    aws_security_group.aws-devsecops-demo-ELB-HTTP80.id,
   ]
   tags = {
     team  = "DevRel Marketing",
@@ -241,27 +241,27 @@ resource "aws_alb_listener" "front_end" {
 }
 
 #AWS ECS Task definition
-resource "aws_ecs_task_definition" "app-arm-v8" {
-  family                = "app-arm"
+resource "aws_ecs_task_definition" "aws-devsecops-demo-v8" {
+  family                = "aws-devsecops-demo"
   container_definitions = data.template_file.task_definition_json.rendered
 }
 
 #AWS ECS Cluster
-resource "aws_ecs_cluster" "app-arm-v8" {
-  name = "app-arm-v8"
+resource "aws_ecs_cluster" "aws-devsecops-demo-v8" {
+  name = "aws-devsecops-demo-v8"
 }
 
 #AWS ECS Service
-resource "aws_ecs_service" "app-arm-v8" {
-  name                               = "srv_app-arm-v8"
-  cluster                            = aws_ecs_cluster.app-arm-v8.name
+resource "aws_ecs_service" "aws-devsecops-demo-v8" {
+  name                               = "srv_aws-devsecops-demo-v8"
+  cluster                            = aws_ecs_cluster.aws-devsecops-demo-v8.name
   desired_count                      = var.ecs_desired_count
   deployment_minimum_healthy_percent = 50
   deployment_maximum_percent         = 100
-  task_definition                    = aws_ecs_task_definition.app-arm-v8.arn
+  task_definition                    = aws_ecs_task_definition.aws-devsecops-demo-v8.arn
   load_balancer {
     target_group_arn = aws_alb_target_group.alb.id
-    container_name   = "app-arm"
+    container_name   = "aws-devsecops-demo"
     container_port   = 5000
   }
   depends_on = [

@@ -102,7 +102,7 @@ jobs:
             pulumi config set ecs:asg_min 3
             pulumi config set ecs:asg_max 5
             pulumi config set ecs:asg_desired 3
-            pulumi config set ecs:cluster_name "app-arm"
+            pulumi config set ecs:cluster_name "aws-devsecops-demo"
             pulumi config set ecs:ecs_desired_count 3
             pulumi config set ecs:docker_image_name ${DOCKER_LOGIN}/${CIRCLE_PROJECT_REPONAME}
             pulumi config set ecs:docker_image_tag 0.1.<< pipeline.number >>
