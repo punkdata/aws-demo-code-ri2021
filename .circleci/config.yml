@@ -137,16 +137,17 @@ workflows:
                 name: Run Stackhawk Scan
                 command: |
                   docker run -d --rm -p5000:5000 $DOCKER_LOGIN/$CIRCLE_PROJECT_REPONAME:0.1.<< pipeline.number >>
-      # - terraform_deploy_aws_ecs:
-      #     requires:
-      #       - build_docker_image          
-      # - smoketest_deployment:
-      #     requires:
-      #       - terraform_deploy_aws_ecs
-      # - approve_destroy:
-      #     type: approval
-      #     requires:
-      #       - smoketest_deployment
-      # - terraform_destroy_aws_ecs:
-      #     requires:
-      #       - approve_destroy
+      - terraform_deploy_aws_ecs:
+          requires:
+            - build_docker_image
+            - stackhawk/hawkscan-local    
+      - smoketest_deployment:
+          requires:
+            - terraform_deploy_aws_ecs
+      - approve_destroy:
+          type: approval
+          requires:
+            - smoketest_deployment
+      - terraform_destroy_aws_ecs:
+          requires:
+            - approve_destroy
