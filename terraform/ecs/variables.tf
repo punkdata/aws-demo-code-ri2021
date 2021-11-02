@@ -11,17 +11,17 @@ variable "availability_zones" {
 
 variable "key_pair" {
   description = "AWS EC2 Key Pair Pem"
-  default     = "ee-default-keypair"
+  default     = "devrel-angel-rivera"
 }
 
 variable "ami" {
   description = "Amazon Linux 2 AMI"
-  default     = "ami-0c3dda3deab25a563"
+  default     = "ami-0ff8a91507f77f867"
 }
 
 variable "instance_type" {
-  description = "AWS ARM GravitonInstance Type"
-  default     = "t4.medium"
+  description = "AWS Instance Type"
+  default     = "t3.medium"
 }
 
 variable "iam_profile" {
