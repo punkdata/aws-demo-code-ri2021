@@ -11,7 +11,7 @@ variable "availability_zones" {
 
 variable "key_pair" {
   description = "AWS EC2 Key Pair Pem"
-  default     = "devrel-angel-rivera"
+  default     = "<Add Your AWS Key Pair Here>"
 }
 
 variable "ami" {
@@ -47,7 +47,7 @@ variable "asg_desired" {
 variable "docker_img_name" {
   type        = string
   description = "Name of the docker image being deployed"
-  default     = "ariv3ra/aws-circleci-modernization-workshop-code"
+  default     = "ariv3ra/aws-demo-coderi2021"
 }
 
 variable "docker_img_tag" {

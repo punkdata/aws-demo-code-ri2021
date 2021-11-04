@@ -1,7 +1,7 @@
 terraform {
   required_version = ">= 0.13.5"
   backend "remote" {
-    organization = "datapunks"
+    organization = "< Add your Terraform Cloud Orgainzation here >"
 
     workspaces {
       name = "aws-devsecops-demo"

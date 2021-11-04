@@ -1,6 +1,0 @@
-name: ecs
-runtime:
-  name: python
-  options:
-    virtualenv: venv
-description: AWS ECS provisioning code
