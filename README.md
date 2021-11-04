@@ -1,1 +1,2 @@
-# aws-demo-code-ri2021
+# AWS Demo Code for Reinvent 2021 project
+

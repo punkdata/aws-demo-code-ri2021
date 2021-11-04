@@ -1,0 +1,4 @@
+app:
+  applicationId: ${APP_ID:bdf5d6af-4c4f-43d9-ba1b-ee305873cb6c}
+  env: ${APP_ENV:dev}
+  host: ${APP_HOST:http://localhost:5000}

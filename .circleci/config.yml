@@ -1,0 +1,152 @@
+version: 2.1
+orbs:
+  snyk: snyk/snyk@0.1.0
+  stackhawk: stackhawk/stackhawk@1.0.3
+  aws-cli: circleci/aws-cli@2.0.2
+  node: circleci/node@4.2.0
+  docker: circleci/docker@1.5.0
+  terraform: circleci/terraform@3.0.0
+jobs:
+  run_tests:
+    docker:
+      - image: cimg/node:14.16.0
+    steps:
+      - checkout
+      - node/install-packages:
+          override-ci-command: npm install
+          cache-path: ~/project/node_modules
+      - run:
+          name: Run Unit Tests
+          command: |
+            ./node_modules/mocha/bin/mocha test/ --reporter mocha-junit-reporter --reporter-options mochaFile=./test/test-results.xml
+            ./node_modules/mocha/bin/mocha test/ --reporter mochawesome --reporter-options reportDir=test-results,reportFilename=test-results
+      - store_test_results:
+          path: test/
+      - store_artifacts:
+          path: test-results          
+  scan_app:
+    docker:
+      - image: cimg/node:14.16.0
+    steps:
+      - checkout
+      - run:
+          name: Snyk Scan Application files 
+          command: npm install 
+      - snyk/scan:
+          fail-on-issues: false
+          monitor-on-build: false
+  scan_build_docker_image:
+    machine:
+      image: ubuntu-2004:202101-01
+    resource_class: medium
+    steps:
+      - checkout  
+      - docker/check
+      - docker/build:
+          image: $DOCKER_LOGIN/$CIRCLE_PROJECT_REPONAME
+          tag: 0.1.<< pipeline.number >>
+      - snyk/scan:
+          docker-image-name: $DOCKER_LOGIN/$CIRCLE_PROJECT_REPONAME:0.1.<< pipeline.number >>
+          fail-on-issues: false
+          monitor-on-build: false
+          severity-threshold: high
+          target-file: Dockerfile
+          token-variable: SNYK_TOKEN
+      - docker/push:
+          image: $DOCKER_LOGIN/$CIRCLE_PROJECT_REPONAME
+          tag: 0.1.<< pipeline.number >>
+  terraform_deploy_aws_ecs:
+    machine:
+      image: ubuntu-2004:202101-01
+    resource_class: medium
+    steps:
+      - checkout
+      - run:
+          name: Create .terraformrc file locally
+          command: echo "credentials \"app.terraform.io\" {token = \"$TERRAFORM_TOKEN\"}" > $HOME/.terraformrc
+      - terraform/install:
+          terraform_version: "1.0.2"
+          arch: "amd64"
+          os: "linux"
+      - terraform/init:
+          path: ./terraform/ecs
+      - terraform/plan:
+          path: ./terraform/ecs
+      - run:
+          name: Terraform apply
+          command: |
+            terraform -chdir=./terraform/ecs apply \
+              -var docker_img_name=${DOCKER_LOGIN}/${CIRCLE_PROJECT_REPONAME} \
+              -var docker_img_tag=0.1.<< pipeline.number >> \
+              -var key_pair=devrel-angel-rivera \
+              -auto-approve
+            export ENDPOINT="$(terraform -chdir=./terraform/ecs output load_balancer_hostname)"
+            mkdir -p /tmp/ecs/
+            echo 'export ENDPOINT='${ENDPOINT} > /tmp/ecs/endpoint
+      - persist_to_workspace:
+          root: /tmp/ecs/
+          paths:
+            - "*"      
+      - run: sleep 90  
+  smoketest_deployment:
+    machine:
+      image: ubuntu-2004:202101-01
+    resource_class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /tmp/ecs/
+      - run:
+          name: Smoke Test ECS Deployment
+          command: |
+            source /tmp/ecs/endpoint
+            ./test/smoke_test $ENDPOINT
+  terraform_destroy_aws_ecs:
+    machine:
+      image: ubuntu-2004:202101-01
+    resource_class: medium
+    steps:
+      - checkout
+      - run:
+          name: Create .terraformrc file locally
+          command: echo "credentials \"app.terraform.io\" {token = \"$TERRAFORM_TOKEN\"}" > $HOME/.terraformrc
+      - terraform/install:
+          terraform_version: "1.0.2"
+          arch: "amd64"
+          os: "linux"
+      - terraform/init:
+          path: ./terraform/ecs
+      - terraform/plan:
+          path: ./terraform/ecs
+      - terraform/destroy:
+          path: ./terraform/ecs
+workflows:
+  build:
+    jobs:
+      - run_tests
+      - scan_app
+      - scan_build_docker_image
+      - stackhawk/hawkscan-local:
+          requires:
+            - scan_build_docker_image
+          docker-network: host
+          app-id: bdf5d6af-4c4f-43d9-ba1b-ee305873cb6c
+          steps:
+            - checkout
+            - run:
+                name: Run Stackhawk Scan
+                command: |
+                  docker run -d --rm -p5000:5000 $DOCKER_LOGIN/$CIRCLE_PROJECT_REPONAME:0.1.<< pipeline.number >>
+      - terraform_deploy_aws_ecs:
+          requires:
+            - stackhawk/hawkscan-local    
+      - smoketest_deployment:
+          requires:
+            - terraform_deploy_aws_ecs
+      - approve_destroy:
+          type: approval
+          requires:
+            - smoketest_deployment
+      - terraform_destroy_aws_ecs:
+          requires:
+            - approve_destroy
