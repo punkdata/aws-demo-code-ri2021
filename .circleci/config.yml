@@ -47,7 +47,7 @@ jobs:
           region: AWS_REGION
           account-url: AWS_ECR_ACCOUNT_URL
           repo: $AWS_ECR_REPO
-          tag: 0.1.<< pipeline.number >>, latest
+          tag: 0.1.<< pipeline.number >>
       - snyk/scan:
           docker-image-name: $AWS_ECR_ACCOUNT_URL/$AWS_ECR_REPO:0.1.<< pipeline.number >>
           fail-on-issues: false
@@ -58,7 +58,7 @@ jobs:
       - aws-ecr/push-image:
           account-url: AWS_ECR_ACCOUNT_URL
           repo: $AWS_ECR_REPO
-          tag: 0.1.<< pipeline.number >>, latest
+          tag: 0.1.<< pipeline.number >>
   terraform_deploy_aws_ecs:
     machine:
       image: ubuntu-2004:202101-01
@@ -127,20 +127,20 @@ jobs:
 workflows:
   build:
     jobs:
-      - run_tests
-      - scan_app
+      # - run_tests
+      # - scan_app
       - scan_build_docker_image
-      - stackhawk/hawkscan-local:
-          requires:
-            - scan_build_docker_image
-          docker-network: host
-          app-id: bdf5d6af-4c4f-43d9-ba1b-ee305873cb6c
-          steps:
-            - checkout
-            - run:
-                name: Run Stackhawk Scan
-                command: |
-                  docker run -d --rm -p5000:5000 $DOCKER_LOGIN/$CIRCLE_PROJECT_REPONAME:0.1.<< pipeline.number >>
+      # - stackhawk/hawkscan-local:
+      #     requires:
+      #       - scan_build_docker_image
+      #     docker-network: host
+      #     app-id: bdf5d6af-4c4f-43d9-ba1b-ee305873cb6c
+      #     steps:
+      #       - checkout
+      #       - run:
+      #           name: Run Stackhawk Scan
+      #           command: |
+      #             docker run -d --rm -p5000:5000 $DOCKER_LOGIN/$CIRCLE_PROJECT_REPONAME:0.1.<< pipeline.number >>
       - terraform_deploy_aws_ecs:
           requires:
             - stackhawk/hawkscan-local    
