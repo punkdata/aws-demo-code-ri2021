@@ -58,11 +58,7 @@ jobs:
       - aws-ecr/push-image:
           account-url: AWS_ECR_ACCOUNT_URL
           repo: $AWS_ECR_REPO
-          tag: 0.1.<< pipeline.number >>
-      - aws-ecr/push-image:
-          account-url: AWS_ECR_ACCOUNT_URL
-          repo: $AWS_ECR_REPO
-          tag: latest          
+          tag: 0.1.<< pipeline.number >>          
   terraform_deploy_aws_ecs:
     machine:
       image: ubuntu-2004:202101-01
