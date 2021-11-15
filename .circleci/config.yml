@@ -44,6 +44,7 @@ jobs:
       - checkout
       - aws-ecr/build-image:
           ecr-login: true
+          region: us-east-1
           account-url: AWS_ECR_ACCOUNT_URL
           repo: $AWS_ECR_REPO
           tag: 0.1.<< pipeline.number >>, latest
