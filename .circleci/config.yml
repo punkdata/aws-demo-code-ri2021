@@ -140,7 +140,7 @@ workflows:
             - run:
                 name: Run Stackhawk Scan
                 command: |
-                  docker run -d --rm -p5000:5000 $DOCKER_LOGIN/$CIRCLE_PROJECT_REPONAME:0.1.<< pipeline.number >>
+                  docker run -d --rm -p5000:5000 $AWS_ECR_ACCOUNT_URL/$AWS_ECR_REPO:0.1.<< pipeline.number >>
       - terraform_deploy_aws_ecs:
           requires:
             - stackhawk/hawkscan-local    
