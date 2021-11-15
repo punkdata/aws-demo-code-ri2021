@@ -130,27 +130,27 @@ workflows:
       - run_tests
       # - scan_app
       - scan_build_docker_image
-      # - stackhawk/hawkscan-local:
-      #     requires:
-      #       - scan_build_docker_image
-      #     docker-network: host
-      #     app-id: bdf5d6af-4c4f-43d9-ba1b-ee305873cb6c
-      #     steps:
-      #       - checkout
-      #       - run:
-      #           name: Run Stackhawk Scan
-      #           command: |
-      #             docker run -d --rm -p5000:5000 $DOCKER_LOGIN/$CIRCLE_PROJECT_REPONAME:0.1.<< pipeline.number >>
-      # - terraform_deploy_aws_ecs:
-      #     requires:
-      #       - stackhawk/hawkscan-local    
-      # - smoketest_deployment:
-      #     requires:
-      #       - terraform_deploy_aws_ecs
-      # - approve_destroy:
-      #     type: approval
-      #     requires:
-      #       - smoketest_deployment
-      # - terraform_destroy_aws_ecs:
-      #     requires:
-      #       - approve_destroy
+      - stackhawk/hawkscan-local:
+          requires:
+            - scan_build_docker_image
+          docker-network: host
+          app-id: bdf5d6af-4c4f-43d9-ba1b-ee305873cb6c
+          steps:
+            - checkout
+            - run:
+                name: Run Stackhawk Scan
+                command: |
+                  docker run -d --rm -p5000:5000 $DOCKER_LOGIN/$CIRCLE_PROJECT_REPONAME:0.1.<< pipeline.number >>
+      - terraform_deploy_aws_ecs:
+          requires:
+            - stackhawk/hawkscan-local    
+      - smoketest_deployment:
+          requires:
+            - terraform_deploy_aws_ecs
+      - approve_destroy:
+          type: approval
+          requires:
+            - smoketest_deployment
+      - terraform_destroy_aws_ecs:
+          requires:
+            - approve_destroy
