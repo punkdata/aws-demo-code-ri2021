@@ -1,11 +1,9 @@
 version: 2.1
 orbs:
-  aws-cli: circleci/aws-cli@2.0.2
   aws-ecr: circleci/aws-ecr@7.2.0
   snyk: snyk/snyk@0.1.0
   stackhawk: stackhawk/stackhawk@1.0.3
   node: circleci/node@4.2.0
-  docker: circleci/docker@1.5.0
   terraform: circleci/terraform@3.0.0
 jobs:
   run_tests:
@@ -65,9 +63,6 @@ jobs:
     resource_class: medium
     steps:
       - checkout
-      - run:
-          name: Create .terraformrc file locally
-          command: echo "credentials \"app.terraform.io\" {token = \"$TERRAFORM_TOKEN\"}" > $HOME/.terraformrc
       - terraform/install:
           terraform_version: "1.0.2"
           arch: "amd64"
@@ -128,7 +123,7 @@ workflows:
   build:
     jobs:
       - run_tests
-      # - scan_app
+      - scan_app
       - scan_build_docker_image
       - stackhawk/hawkscan-local:
           requires:
